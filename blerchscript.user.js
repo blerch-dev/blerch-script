@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BlerchScript
 // @namespace    https://www.destiny.gg/
-// @version      1.1.1
+// @version      1.1.2
 // @description  extra utilities for embeds
 // @author       blerch
 // @match        *://*.destiny.gg/*
@@ -16,6 +16,9 @@ function bs_run() {
     };
 
     const GetURL = (url) => {
+        if(url === null)
+          return 'about:blank';
+
         let curl = "parent=" + window.location.hostname;
         if(url.indexOf('?') >= 0) {
             curl = url + "&" + curl;
@@ -29,6 +32,7 @@ function bs_run() {
     const CreateIframe = (url) => {
         let f = document.createElement('iframe');
         f.src = GetURL(url);
+        f.id = "custom-iframe";
         f.style = "border: medium none; overflow: hidden; width: 100%; height: 100%;";
         f.scrolling = "no";
         f.allowFullscreen = "true";
@@ -37,6 +41,7 @@ function bs_run() {
         return f;
     };
 
+    let currentEmbed = null;
     const SetCustomEmbed = (url) => {
         let wrap = document.getElementById('stream-wrap');
         DebugLog("SetCustomEmbed:", url);
@@ -59,6 +64,7 @@ function bs_run() {
             wrap.appendChild(iframe);
         }
 
+        currentEmbed = iframe.src === "about:blank" ? null : iframe.src;
       	observer.observe(iframe, { attributes: true });
       	//document.getElementById('abyss-shield').style.display = 'none';
     };
@@ -115,7 +121,11 @@ function bs_run() {
         elem.style.display = elem.style.display === "none" ? "flex" : "none";
     };
 
-    const handleEmbed = () => {
+    const handleEmbed = (clear = false) => {
+      if(clear === true) {
+        return SetCustomEmbed(null); 
+      }
+
       let embed = window.location.hash?.split('/');
       if(embed[0] === "#youtube") {
         SetCustomEmbed(`https://www.youtube.com/embed/${embed[1]}?autoplay=1&playsinline=1&hd=1`);
@@ -127,6 +137,8 @@ function bs_run() {
         SetCustomEmbed(`https://rumble.com/embed/${embed[1]}/?pub=7a20&rel=5&autoplay=2`)
       } else if(embed[0] === "#custom") {
         SetCustomEmbed(embed[1]);
+      } else {
+        SetCustomEmbed(null);
       }
     }
 
@@ -141,6 +153,10 @@ function bs_run() {
       	document.getElementById("embed").remove();
 
         handleEmbed();
+
+        document.getElementById("host-pill-icon").addEventListener("click", (e) => {
+          if(currentEmbed != null) { handleEmbed(true) }
+        });
       
         document.addEventListener('keydown', (e) => {
             //DebugLog(e.target.id, e.key, e.target?.id === "bs-direct-player-input", e.key === "Enter");
