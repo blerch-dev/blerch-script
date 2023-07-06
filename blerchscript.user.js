@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BlerchScript
 // @namespace    https://www.destiny.gg/
-// @version      1.1.0
+// @version      1.1.1
 // @description  extra utilities for embeds
 // @author       blerch
 // @match        *://*.destiny.gg/*
@@ -43,14 +43,13 @@ function bs_run() {
         if(!(wrap instanceof Element)) { return DebugLog('No instance of element with id "stream-wrap"'); }
 
         let children = [...wrap.children], iframe = null;
-        console.log(wrap, children);
+        //console.log(wrap, children);
         for(let i = 0; i < children.length; i++) {
-            console.log(children[i].tagName);
+            //console.log(children[i].tagName);
             if(children[i].tagName === 'IFRAME') {
                 iframe = children[i];
             }
         }
-        console.log(iframe);
 
       	observer.disconnect();
         if(iframe instanceof Element) {
@@ -116,21 +115,32 @@ function bs_run() {
         elem.style.display = elem.style.display === "none" ? "flex" : "none";
     };
 
+    const handleEmbed = () => {
+      let embed = window.location.hash?.split('/');
+      if(embed[0] === "#youtube") {
+        SetCustomEmbed(`https://www.youtube.com/embed/${embed[1]}?autoplay=1&playsinline=1&hd=1`);
+      } else if(embed[0] === "#twitch") {
+        SetCustomEmbed(`https://player.twitch.tv/?channel=${embed[1]}`);
+      } else if(embed[0] === "#kick") {
+        SetCustomEmbed(`https://player.kick.com/${embed[1]}?autoplay=true`);
+      } else if(embed[0] === "#rumble") {
+        SetCustomEmbed(`https://rumble.com/embed/${embed[1]}/?pub=7a20&rel=5&autoplay=2`)
+      } else if(embed[0] === "#custom") {
+        SetCustomEmbed(embed[1]);
+      }
+    }
+
+    window.addEventListener("hashchange", () => {
+      DebugLog("Hash Change:", window.location.hash);
+      handleEmbed();
+    });
+
     document.addEventListener('DOMContentLoaded', () => {
       	document.getElementById("stream-block").remove();
       	document.getElementById("offline-text").remove();
       	document.getElementById("embed").remove();
-      
-      	// url
-      	//DebugLog(window.location);
-      	let embed = window.location.hash?.split('/');
-      	if(embed[0] === "#youtube") {
-          SetCustomEmbed(`https://www.youtube.com/embed/${embed[1]}?autoplay=1&playsinline=1&hd=1`);
-        } else if(embed[0] === '#twitch') {
-          SetCustomEmbed(`https://player.twitch.tv/?channel=${embed[1]}`);
-        } else if(embed[0] === "#custom") {
-          SetCustomEmbed(embed[1]);
-        }
+
+        handleEmbed();
       
         document.addEventListener('keydown', (e) => {
             //DebugLog(e.target.id, e.key, e.target?.id === "bs-direct-player-input", e.key === "Enter");
