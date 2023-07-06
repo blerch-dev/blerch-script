@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BlerchScript
 // @namespace    https://www.destiny.gg/
-// @version      1.0.0
+// @version      1.1.0
 // @description  extra utilities for embeds
 // @author       blerch
 // @match        *://*.destiny.gg/*
