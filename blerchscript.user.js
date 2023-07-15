@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BlerchScript
 // @namespace    https://www.destiny.gg/
-// @version      1.1.2
+// @version      1.1.3
 // @description  extra utilities for embeds
 // @author       blerch
 // @match        *://*.destiny.gg/*
@@ -15,23 +15,25 @@ function bs_run() {
         console.log('-- BlerchScript:', ...args);
     };
 
-    const GetURL = (url) => {
+    const GetURL = (url, withParent = false) => {
         if(url === null)
           return 'about:blank';
 
-        let curl = "parent=" + window.location.hostname;
-        if(url.indexOf('?') >= 0) {
+        let curl = withParent ? "parent=" + window.location.hostname : "";
+        if(url.indexOf('?') >= 0 && curl) {
             curl = url + "&" + curl;
-        } else {
+        } else if(curl) {
             curl = url + "?" + curl;
+        } else {
+          curl = url;
         }
 
         return curl;
     };
 
-    const CreateIframe = (url) => {
+    const CreateIframe = (url, withParent = false) => {
         let f = document.createElement('iframe');
-        f.src = GetURL(url);
+        f.src = GetURL(url, withParent);
         f.id = "custom-iframe";
         f.style = "border: medium none; overflow: hidden; width: 100%; height: 100%;";
         f.scrolling = "no";
@@ -42,7 +44,7 @@ function bs_run() {
     };
 
     let currentEmbed = null;
-    const SetCustomEmbed = (url) => {
+    const SetCustomEmbed = (url, withParent = false) => {
         let wrap = document.getElementById('stream-wrap');
         DebugLog("SetCustomEmbed:", url);
         if(!(wrap instanceof Element)) { return DebugLog('No instance of element with id "stream-wrap"'); }
@@ -58,9 +60,9 @@ function bs_run() {
 
       	observer.disconnect();
         if(iframe instanceof Element) {
-            iframe.src = GetURL(url);
+            iframe.src = GetURL(url, withParent);
         } else {
-            iframe = CreateIframe(url);
+            iframe = CreateIframe(url, withParent);
             wrap.appendChild(iframe);
         }
 
@@ -123,18 +125,18 @@ function bs_run() {
 
     const handleEmbed = (clear = false) => {
       if(clear === true) {
-        return SetCustomEmbed(null); 
+        return SetCustomEmbed(null);
       }
 
       let embed = window.location.hash?.split('/');
       if(embed[0] === "#youtube") {
-        SetCustomEmbed(`https://www.youtube.com/embed/${embed[1]}?autoplay=1&playsinline=1&hd=1`);
+        SetCustomEmbed(`https://www.youtube.com/embed/${embed[1]}?autoplay=1&playsinline=1&hd=1`, true);
       } else if(embed[0] === "#twitch") {
-        SetCustomEmbed(`https://player.twitch.tv/?channel=${embed[1]}`);
+        SetCustomEmbed(`https://player.twitch.tv/?channel=${embed[1]}`, true);
       } else if(embed[0] === "#kick") {
-        SetCustomEmbed(`https://player.kick.com/${embed[1]}?autoplay=true`);
+        SetCustomEmbed(`https://player.kick.com/${embed[1]}?autoplay=true`, false);
       } else if(embed[0] === "#rumble") {
-        SetCustomEmbed(`https://rumble.com/embed/${embed[1]}/?pub=7a20&rel=5&autoplay=2`)
+        SetCustomEmbed(`https://rumble.com/embed/${embed[1]}/?pub=7a20&rel=5&autoplay=2`, true)
       } else if(embed[0] === "#custom") {
         SetCustomEmbed(embed[1]);
       } else {
@@ -154,10 +156,12 @@ function bs_run() {
 
         handleEmbed();
 
+        document.addEventListener('click', (e) => { console.log(e.target.id) })
         document.getElementById("host-pill-icon").addEventListener("click", (e) => {
+          console.log("clicked pill");
           if(currentEmbed != null) { handleEmbed(true) }
         });
-      
+
         document.addEventListener('keydown', (e) => {
             //DebugLog(e.target.id, e.key, e.target?.id === "bs-direct-player-input", e.key === "Enter");
             if(e.code === 'Backquote') {
