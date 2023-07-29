@@ -1,14 +1,21 @@
 // ==UserScript==
 // @name         BlerchScript
 // @namespace    https://www.destiny.gg/
-// @version      1.1.4
+// @version      1.1.5
 // @description  extra utilities for embeds
 // @author       blerch
 // @match        *://*.destiny.gg/*
 // @run-at       document-start
+// @grant        GM_addStyle
 // ==/UserScript==
 
 bs_run();
+
+GM_addStyle(`
+  .embed-button * {
+    pointer-events: none;
+  }
+`);
 
 function bs_run() {
     const DebugLog = (...args) => {
@@ -157,7 +164,11 @@ function bs_run() {
         handleEmbed();
 
         document.addEventListener('click', (e) => {
-          if(e.dataset.platform && e.dataset.id) { handleEmbed(false, e.dataset.platform, e.dataset.id); }
+          let data = e?.target?.dataset;
+          if(data?.platform && data?.id) { 
+            console.log("Handling Embed Button:", data);
+            handleEmbed(false, data?.platform, data?.id); 
+          }
         });
 
         document.getElementById("host-pill-icon").addEventListener("click", (e) => {
