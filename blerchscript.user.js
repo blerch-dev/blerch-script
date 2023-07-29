@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BlerchScript
 // @namespace    https://www.destiny.gg/
-// @version      1.1.3
+// @version      1.1.4
 // @description  extra utilities for embeds
 // @author       blerch
 // @match        *://*.destiny.gg/*
@@ -123,19 +123,19 @@ function bs_run() {
         elem.style.display = elem.style.display === "none" ? "flex" : "none";
     };
 
-    const handleEmbed = (clear = false) => {
+    const handleEmbed = (clear = false, platform = undefined, id = undefined) => {
       if(clear === true) {
         return SetCustomEmbed(null);
       }
 
-      let embed = window.location.hash?.split('/');
-      if(embed[0] === "#youtube") {
+      let embed = (platform && id) ? [platform, id] : window.location.hash?.split('/');
+      if(embed[0] === "#youtube" || embed[0] === "youtube") {
         SetCustomEmbed(`https://www.youtube.com/embed/${embed[1]}?autoplay=1&playsinline=1&hd=1`, true);
-      } else if(embed[0] === "#twitch") {
+      } else if(embed[0] === "#twitch" || embed[0] === "twitch") {
         SetCustomEmbed(`https://player.twitch.tv/?channel=${embed[1]}`, true);
-      } else if(embed[0] === "#kick") {
+      } else if(embed[0] === "#kick" || embed[0] === "kick") {
         SetCustomEmbed(`https://player.kick.com/${embed[1]}?autoplay=true`, false);
-      } else if(embed[0] === "#rumble") {
+      } else if(embed[0] === "#rumble" || embed[0] === "rumble") {
         SetCustomEmbed(`https://rumble.com/embed/${embed[1]}/?pub=7a20&rel=5&autoplay=2`, true)
       } else if(embed[0] === "#custom") {
         SetCustomEmbed(embed[1]);
@@ -156,7 +156,10 @@ function bs_run() {
 
         handleEmbed();
 
-        document.addEventListener('click', (e) => { console.log(e.target.id) })
+        document.addEventListener('click', (e) => {
+          if(e.dataset.platform && e.dataset.id) { handleEmbed(false, e.dataset.platform, e.dataset.id); }
+        });
+
         document.getElementById("host-pill-icon").addEventListener("click", (e) => {
           console.log("clicked pill");
           if(currentEmbed != null) { handleEmbed(true) }
